@@ -8,30 +8,11 @@ var http = require("http"),
 const app = express();
 
 app.set("view engine", "jade");
-
-// browser -> node -> express -> M1 -> M2 -> handler
-//         <-      <-         <-    <-    <-
-
-
-app.use((request, response, next) => {
-    console.log("In middleware 1");
-    next();
-    console.log("Out of middleware 1");
-});
-
 app.use(express.static("./public")); 
-
-
-app.use((request, response, next) => {
-    console.log("---In middleware 2");
-    next();
-    console.log("---Out of middleware 2");
-});
 
 // config express
 app.get("/", (request, response) => {
     response.end("Hello World");
-    console.log("In handler"); 
 });
 
 app.get("/home", (request, response) => {
@@ -41,6 +22,14 @@ app.get("/home", (request, response) => {
 //create server
 const server = new http.Server(app);
 const io = socketIo(server);
+
+io.on("connection", socket => {
+    console.log("Client connected");
+    socket.on("chat:add", data => {
+        console.log(data);
+        io.emit("chat:added", data);
+    });
+});
 
 // tell server to listen
 const port = 3000;
